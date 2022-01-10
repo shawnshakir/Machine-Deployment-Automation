@@ -1,0 +1,50 @@
+# Install Chocolatey
+
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+
+
+Set-ExecutionPolicy Bypass -Scope Process -Force; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
+
+# Schedules JumpCloud Agent Restart (Required post Chocolatey install)
+
+## Checks to see if the directory on local computer exists for JumpCloud Scheduled Tasks
+if ( -not (Test-Path -path "C:\Windows\Temp\JC_ScheduledTasks"))
+{
+    New-Item -Path "C:\Windows\Temp\JC_ScheduledTasks" -ItemType directory
+}
+
+## Creates Agent restart script file
+$FileDate = Get-Date -Format FileDateTime
+$FileName = "JC_ScheduledWAgentRestart$FileDate.ps1"
+$TaskName = "JC_ScheduledWAgentRestart$FileDate"
+$FilePath = "C:\Windows\Temp\JC_ScheduledTasks\"
+
+$FileContents = @"
+
+    Stop-Service jumpcloud-agent -force
+    Start-Sleep -Seconds 1
+    Start-Service jumpcloud-agent
+    SCHTASKS /Delete /tn "$TaskName" /F
+    Remove-Item -LiteralPath `$MyInvocation.MyCommand.Path -Force
+
+"@
+
+New-Item -Path $FilePath -Name $FileName  -ItemType "file" -Value $FileContents
+
+## Schedules task to run in 1 minute
+$RunTime = (Get-Date).AddMinutes(1) | Get-Date -UFormat %R
+SCHTASKS /create /tn "$TaskName" /tr "powershell.exe -noprofile -executionpolicy Unrestricted -file $FilePath$FileName" /sc ONCE /st $RunTime /RU "NT AUTHORITY\SYSTEM"
+
+C:\ProgramData\chocolatey\choco.exe install google-drive-file-stream /Y;
+C:\ProgramData\chocolatey\choco.exe install adobereader /Y;
+C:\ProgramData\chocolatey\choco.exe install googlechrome /Y;
+C:\ProgramData\chocolatey\choco.exe install slack /Y;
+C:\ProgramData\chocolatey\choco.exe install zoom /Y;
+C:\ProgramData\chocolatey\choco.exe install office365business /Y;
+
+md c:\s1
+$source = 'https://attachment-desti-test.s3.amazonaws.com/SentinelInstaller_windows_64bit_v21_6_2_272.msi' 
+$destination = 'C:\s1\SentinelInstaller.msi'
+Invoke-WebRequest -Uri $source -OutFile $destination
+
+msiexec.exe /I c:\s1\SentinelInstaller.msi SITE_TOKEN="Insert SeintelOne Key Here" /quiet /norestart
