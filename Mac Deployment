@@ -1,0 +1,124 @@
+#Make temp folder for zoom download. 
+mkdir "/tmp/zoom/"; cd "/tmp/zoom/"; 
+
+#Download Zoom. 
+curl -L -o /tmp/zoom/zoom.pkg "https://zoom.us/client/latest/ZoomInstallerIT.pkg"; 
+
+#install Zoom 
+sudo installer -pkg /private/tmp/zoom/zoom.pkg -target /; 
+
+#tidy up 
+sudo rm -rf "/tmp/zoom";
+
+#Make temp folder for Slack download.
+mkdir "/tmp/slack/";
+cd "/tmp/slack/";
+
+#Download Slack.
+curl -L -o /tmp/slack/slack.dmg "https://slack.com/ssb/download-osx-silicon";
+
+#Mount DMG
+hdiutil attach /tmp/slack/slack.dmg -nobrowse;
+
+#Copy App to Applications
+sudo cp -R "/Volumes/Slack/Slack.app" /Applications;
+
+#Unmount DMG
+hdiutil detach /Volumes/Slack -force;
+
+#tidy up
+sudo rm -rf "/tmp/slack";
+
+#Make temp folder for browser downloads.
+mkdir "/tmp/browsers/";
+cd "/tmp/browsers/";
+
+#Download Chrome.
+curl -L -o /tmp/browsers/chrome.dmg "https://dl.google.com/chrome/mac/universal/stable/GGRO/googlechrome.dmg";
+
+#Mount DMGs
+hdiutil attach /tmp/browsers/chrome.dmg;
+
+#Copy App to Applications
+sudo cp -R "/Volumes/Google Chrome/Google Chrome.app" /Applications;
+
+#Unmount DMG
+hdiutil detach "/Volumes/Google Chrome";
+
+#tidy up
+sudo rm -rf "/tmp/browsers/";
+
+#Make temp folder for Google Drive dowload.
+mkdir "/tmp/GoogleDrive/";
+cd "/tmp/GoogleDrive/";
+
+#Download GoogleDrive.
+curl -L -o /tmp/GoogleDrive/GoogleDrive.dmg "https://dl.google.com/drive-file-stream/GoogleDrive.dmg";
+
+#Mount, Install, and unmount GoogleDrive.dmg
+hdiutil mount GoogleDrive.dmg; 
+
+sudo installer -pkg "/Volumes/Install Google Drive/GoogleDrive.pkg" -target "/Volumes/Macintosh HD"; 
+
+hdiutil unmount "/Volumes/Install Google Drive/"
+
+#tidy up
+sudo rm -rf /tmp/GoogleDrive/
+
+#Make temp folder for downloads.
+mkdir "/tmp/office/";
+cd "/tmp/office/";
+
+#Install MS Office
+curl -L -o /tmp/office/office.pkg "https://go.microsoft.com/fwlink/p/?linkid=2009112";
+
+#Silent Install each application.
+sudo -S installer -allowUntrusted -pkg "/tmp/office/office.pkg" -target /;
+
+#Remove Temp Files
+sudo rm -rf "/tmp/office/";
+
+
+#Install and Configure SentinelOne
+/bin/rm -f /tmp/sentinelagent.pkg /tmp/com.sentinelone.registration-token;
+
+/usr/bin/curl -L  -o /tmp/sentinelagent.pkg https://attachment-desti-test.s3.amazonaws.com/SentinelAgent_macos_v21_5_3_5411.pkg; 
+
+echo "Insert SenintelOne Key Here" > /tmp/com.sentinelone.registration-token;
+
+/usr/sbin/installer -pkg "/tmp/sentinelagent.pkg" -target / ;
+
+/usr/local/bin/sentinelctl set registration-token -- "Insert SenintelOne Key Here" ;
+
+#tidy up
+/bin/rm -f /tmp/sentinelagent.pkg /tmp/com.sentinelone.registration-token ;
+
+
+
+#Make temp folder for downloads.
+mkdir "/tmp/dockutil/";
+cd "/tmp/dockutil/";
+
+#Download DockUtils from GitHub.
+curl -L -o /tmp/dockutil/dockutil.pkg "https://github.com/kcrawford/dockutil/releases/download/2.0.5/dockutil-2.0.5.pkg";
+
+#install DockUtils
+sudo installer -pkg  /private/tmp/dockutil/dockutil.pkg -target /;
+
+#tidy up
+sudo rm -rf "/tmp/dockutil";
+
+#Define Current User
+currentuser=$(ls -l /dev/console | awk '{ print $3 }')
+
+#Remove All Icons
+/usr/local/bin/dockutil --remove all /Users/$currentuser
+
+#Set Icons
+/usr/local/bin/dockutil --add "/Applications/Google Chrome.app" /Users/$currentuser
+/usr/local/bin/dockutil --add "/Applications/Slack.app" /Users/$currentuser
+/usr/local/bin/dockutil --add "/Applications/zoom.us.app" /Users/$currentuser
+/usr/local/bin/dockutil --add "/Applications/Google Drive.app" /Users/$currentuser
+
+
+
